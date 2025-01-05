@@ -1,13 +1,25 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 int main(){
+  //open files
+  //give it a funky name so im not suddenly editing system files
+  
+  std::ofstream inpFile{"asmCode"};
+  std::ofstream outpFile{"binAsmCodeUwU"};
 
-  //check if input file can be opened  //give it a funky name so im not suddenly editing system files
-  //open file
+  //check if input file can be opened
+  if(!inpFile){
+    std::cout << "was not able to open your file";
+    return 1;
+  }
+  //check if output can be opened
+  if(!inpFile){
+    std::cout << "was not able to open your file";
+    return 1;
+  }
 
-  //check if output can be opened      //give it a funky name so im not suddenly editing system files 
-  //open file
 
   //int i = lines(inp.txt)
   
@@ -27,5 +39,5 @@ int main(){
   
   //close inp.txt && out.txt;
   
-
+  return 0;
 }
