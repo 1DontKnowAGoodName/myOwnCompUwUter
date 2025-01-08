@@ -43,97 +43,46 @@ int main(){
     
     //translate var.mnemonic           //throw error if this doesn't work throw error and close() and break;
     if(inputStr.at(0) != '$'){
-      std::string mnemonic;
-
-      //get mnemonic
-      for(int i = 0; i < 3; ++i){
-        mnemonic.at(i) = inputStr.at(i);
-      }
-      
-      const static std::unordered_map<std::string,int> string_to_case{
-        {"NOP", 0},
-        {"LDI", 1},
-        {"STO", 3},
-        {"GET", 4},
-        {"MOV", 5},
-        {"NDY", 6},
-        {"NDY", 7},
-        {"NDY", 8},
-        {"NDY", 9},
-        {"JIT", 10},
-        {"ECT", 11},
-        {"GCT", 12},
-        {"GTV", 13},
-        {"PTV", 14},
-        {"HLT", 15},
-        {"PSS", 16},
-        {"ADD", 17},
-        {"SUB", 18},
-        {"AND", 19},
-        {"ORE", 20},
-        {"XOR", 21},
-        {"NVA", 22},
-        {"NVB", 23},
-        {"RBS", 24},
-        {"LBS", 25},
-        {"COM", 26},
-        {"NDY", 27},
-        {"MLT", 28},
-        {"ODD", 29},
-        {"INC", 30},
-        {"DEC", 31},
+      std::string mnemonic = inputStr.substr(0, 3);
+      std::cout << mnemonic << '\n';
+      const static std::unordered_map<std::string, std::string> inpToOutp{
+        {"NOP", "00000"},
+        {"LDI", "00001"},
+        {"STO", "00010"},
+        {"GET", "00011"},
+        {"MOV", "00100"},
+        {"NDY", "00101"},
+        {"NDY", "00110"},
+        {"NDY", "00111"},
+        {"NDY", "01000"},
+        {"NDY", "01001"},
+        {"JIT", "01010"},
+        {"ECT", "01011"},
+        {"GCT", "01100"},
+        {"GTV", "01101"},
+        {"PTV", "01110"},
+        {"HLT", "01111"},
+        {"PSS", "10000"},
+        {"ADD", "10001"},
+        {"SUB", "10010"},
+        {"AND", "10011"},
+        {"ORE", "10100"},
+        {"XOR", "10101"},
+        {"NVA", "10110"},
+        {"NVB", "10111"},
+        {"RBS", "11000"},
+        {"LBS", "11001"},
+        {"COM", "11010"},
+        {"NDY", "11011"},
+        {"MLT", "11100"},
+        {"ODD", "11101"},
+        {"INC", "11110"},
+        {"DEC", "11111"},
       };
-
-      switch(string_to_case.count("raj") ? string_to_case.at("raj") : -1) {
-        case 0:
-      break;
-        case 1: 
-      break;
-        case 2: 
-      break;
-        case 3: 
-      break;
-        case 4: 
-      break;
-        case 5: 
-      break;
-        case 6: 
-      break;
-        case 7: 
-      break;
-        case 8: 
-      break;
-        case 9: 
-      break;
-        case 10: 
-      break;
-        case 11: 
-      break;
-        case 12: 
-      break;
-        case 13: 
-      break;
-        case 14: 
-      break;
-        case 15: 
-      break;
-        case 16: 
-      break;
-        case 17: 
-      break;
-        case 18: 
-      break;
-        case 19: 
-      break;
-        case 20: 
-      break;
-
-      case -1:
-        break;
-}
+      
+      auto it = inpToOutp.find(mnemonic);
+      outpFile << it->second << '\n';
     }
-  
-    std::cout << inputStr << '\n';
     
     
  

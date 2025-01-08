@@ -1,3 +1,1 @@
-commented line ;comment
-
-uncommented line
+NOP ;comment
