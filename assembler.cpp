@@ -33,19 +33,8 @@ int main(){
   }
 
   std::string inputStr;
-  
-  //main loop
-  while(std::getline(inpFile, inputStr)){
 
-    deleteComments(inputStr);
-
-    deleteSpaces(inputStr);
-    
-    //translate var.mnemonic           //throw error if this doesn't work throw error and close() and break;
-    if(inputStr.at(0) != '$'){
-      std::string mnemonic = inputStr.substr(0, 3);
-      std::cout << mnemonic << '\n';
-      const static std::unordered_map<std::string, std::string> inpToOutp{
+  const static std::unordered_map<std::string, std::string> inpToOutp{
         {"NOP", "00000"},
         {"LDI", "00001"},
         {"STO", "00010"},
@@ -78,9 +67,18 @@ int main(){
         {"ODD", "11101"},
         {"INC", "11110"},
         {"DEC", "11111"},
-      };
-      
-      auto it = inpToOutp.find(mnemonic);
+  };
+  
+  //main loop
+  while(std::getline(inpFile, inputStr)){
+
+    deleteComments(inputStr);
+
+    deleteSpaces(inputStr);
+    
+    //translate var.mnemonic           //throw error if this doesn't work throw error and close() and break;
+    if(inputStr.at(0) != '$'){
+      auto it = inpToOutp.find(inputStr.substr(0, 3));
       outpFile << it->second << '\n';
     }
     
