@@ -1,7 +1,9 @@
 #include <unordered_map>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <bitset>
 
 inline void deleteComments(std::string& inputStr){
   if(inputStr.find(';') != std::string::npos){
@@ -71,19 +73,35 @@ int main(){
   
   //main loop
   while(std::getline(inpFile, inputStr)){
-
     deleteComments(inputStr);
-
     deleteSpaces(inputStr);
-    
-    //translate var.mnemonic           //throw error if this doesn't work throw error and close() and break;
+
+    //translate var.mnemonic           //TO-DO: throw error if this doesn't work throw error and close() and break;
     if(inputStr.at(0) != '$'){
       auto it = inpToOutp.find(inputStr.substr(0, 3));
-      outpFile << it->second << '\n';
+      if(inputStr.substr(0, 3) == "NDY"){
+        std::cout << "that is not a defined operation, killing execution." << '\n';
+        return -1;
+      }
+      outpFile << it->second << ' ';
+      inputStr.erase(0, 3);
     }
-    
-    
- 
+
+
+
+    std::cout << count(inputStr.begin(), inputStr.end(), 'r') << '\n';
+
+    for(int i = 0; i < count(inputStr.begin(), inputStr.end(), 'r'); ++i){
+      
+      if(inputStr.at(1) == '9' || inputStr.at(1) == '8'){
+        std::cout << "not an allowed parameter, terminating process\n";
+        return -1;
+      }
+      std::cout << "loop " << i << '\n';
+      outpFile << std::bitset<3>(inputStr.at(1)).to_string();
+      inputStr.erase(0, 2);
+    }
+
     //add parameters
 
       //register translation
