@@ -71,7 +71,7 @@ int main(){
         {"DEC", "11111"},
   };
   
-  //main loop
+
   while(std::getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
@@ -86,26 +86,23 @@ int main(){
       outpFile << it->second << ' ';
       inputStr.erase(0, 3);
     }
-
-
-
-    std::cout << count(inputStr.begin(), inputStr.end(), 'r') << '\n';
-
-    for(int i = 0; i < count(inputStr.begin(), inputStr.end(), 'r'); ++i){
-      
-      if(inputStr.at(1) == '9' || inputStr.at(1) == '8'){
-        std::cout << "not an allowed parameter, terminating process\n";
-        return -1;
+    
+    //registers
+    for(int i = 0; i < inputStr.size(); ++i){
+      if(inputStr.at(i) == 'r'){
+        if (inputStr.at(i + 1) == 8 || inputStr.at(i + 1) == 9){
+          std::cout << "that's not a real register, terminating process\n";
+          return -1;
+        }
+        outpFile << std::bitset<3>(inputStr.at(i + 1)).to_string();
       }
-      std::cout << "loop " << i << '\n';
-      outpFile << std::bitset<3>(inputStr.at(1)).to_string();
-      inputStr.erase(0, 2);
     }
+    while(inputStr.find('r') !=  std::string::npos){
+      inputStr.erase(inputStr.find('r'), 2);
+    } 
 
     //add parameters
 
-      //register translation
-      
       //label fuckerys
 
       //translate immediates
