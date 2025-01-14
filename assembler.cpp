@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <locale>
 #include <vector>
 #include <bitset>
 
@@ -19,7 +20,7 @@ inline void deleteSpaces(std::string& inputStr){
 }
 
 int main(){
-  //open files   //give it a funky name so im not suddenly editing system files
+  //open files & give it a funky name so im not suddenly editing system files
   std::ifstream inpFile{"C:\\Users\\aevdm\\Documents\\CPUproject\\assembler files\\asmCodeUwU.txt"};
   std::ofstream outpFile{"C:\\Users\\aevdm\\Documents\\CPUproject\\assembler files\\binAsmCodeUwU.txt"};
 
@@ -71,13 +72,12 @@ int main(){
         {"DEC", "11111"},
   };
   
-
   while(std::getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
 
     //translate var.mnemonic           //TO-DO: throw error if this doesn't work throw error and close() and break;
-    if(inputStr.at(0) != '$'){
+    if(inputStr.at(0) != '$' || inputStr.at(0) != '.'){
       auto it = inpToOutp.find(inputStr.substr(0, 3));
       if(inputStr.substr(0, 3) == "NDY"){
         std::cout << "that is not a defined operation, killing execution." << '\n';
@@ -86,31 +86,34 @@ int main(){
       outpFile << it->second << ' ';
       inputStr.erase(0, 3);
     }
-    
     //registers
-    for(int i = 0; i < inputStr.size(); ++i){
-      if(inputStr.at(i) == 'r'){
-        if (inputStr.at(i + 1) == 8 || inputStr.at(i + 1) == 9){
-          std::cout << "that's not a real register, terminating process\n";
+    //labels
+    //immediates
+    while(inputStr.length() != 0){
+      switch(inputStr.at(0)){
+      case 'r':
+        if(isdigit(inputStr.at(1)) && (inputStr.at(1) != 8 || inputStr.at(1) != 9)){
+          outpFile << std::bitset<3>(inputStr.at(1)).to_string();
+        }
+        else{
+          std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
           return -1;
         }
-        outpFile << std::bitset<3>(inputStr.at(i + 1)).to_string();
+        break;
+      case 'i':
+        
+        break;
+      case '$':
+        break;
+      case '.':
+        break;
       }
     }
-    while(inputStr.find('r') !=  std::string::npos){
-      inputStr.erase(inputStr.find('r'), 2);
-    } 
-
-    //add parameters
-
-      //label fuckerys
-
-      //translate immediates
+    
   }
   
-  //close inp.txt && out.txt;
   inpFile.close();
   outpFile.close();
-
+  
   return 0;
 }
