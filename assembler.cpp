@@ -6,6 +6,13 @@
 #include <vector>
 #include <bitset>
 
+// TO DO:
+
+// labels
+// other thing
+// inputStr -> binary string -> outpfile
+//   - so i can also manipulate that
+
 inline void deleteComments(std::string& inputStr){
   if(inputStr.find(';') != std::string::npos){
     inputStr.erase(inputStr.find_first_of(';'), inputStr.length());
@@ -71,7 +78,8 @@ int main(){
         {"INC", "11110"},
         {"DEC", "11111"},
   };
-  
+  std::string temp{};
+
   while(std::getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
@@ -83,15 +91,18 @@ int main(){
         std::cout << "that is not a defined operation, killing execution." << '\n';
         return -1;
       }
-      outpFile << it->second << ' ';
+      outpFile << it->second;
       inputStr.erase(0, 3);
     }
-    //registers
+
     //labels
     //immediates
-    while(inputStr.length() != 0){
+    while(inputStr.empty()){
+      std::cout << inputStr.length() << "loopdeloop\n";
+
       switch(inputStr.at(0)){
       case 'r':
+        std::cout << "r lol\n";
         if(isdigit(inputStr.at(1)) && (inputStr.at(1) != 8 || inputStr.at(1) != 9)){
           outpFile << std::bitset<3>(inputStr.at(1)).to_string();
         }
@@ -99,17 +110,32 @@ int main(){
           std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
           return -1;
         }
+        inputStr.erase(0, 2);
         break;
       case 'i':
-        
+        std::cout << "r lol\n";
+        inputStr.erase(0);
+        for (int i = 0; i < 3; ++i){
+          if(isdigit(inputStr.at(i))){
+            temp.push_back(inputStr.at(i));
+          }
+          else{
+            inputStr.erase(0, 3);
+            break;
+          }
+        }
+        std::bitset<8>(temp).to_string();
+        temp.clear();
         break;
       case '$':
         break;
       case '.':
         break;
       }
+      outpFile << ' ';
+
+
     }
-    
   }
   
   inpFile.close();
