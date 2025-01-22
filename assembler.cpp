@@ -7,11 +7,17 @@
 #include <bitset>
 
 // TO DO:
+// labels, both on the same line or the line before
 
-// labels
-// other thing
+// define, own line  define [word] x
+
+// I/O symbols compile to character code
+
 // inputStr -> binary string -> outpfile
-//   - so i can also manipulate that
+//   - so i can also manipulate it
+
+
+
 
 inline void deleteComments(std::string& inputStr){
   if(inputStr.find(';') != std::string::npos){
@@ -91,7 +97,7 @@ int main(){
         std::cout << "that is not a defined operation, killing execution." << '\n';
         return -1;
       }
-      outpFile << it->second;
+      outpFile << it->second  ;
       inputStr.erase(0, 3);
     }
 
@@ -113,7 +119,7 @@ int main(){
         inputStr.erase(0, 2);
         break;
       case 'i':
-        std::cout << "r lol\n";
+        std::cout << "i lol\n";
         inputStr.erase(0);
         for (int i = 0; i < 3; ++i){
           if(isdigit(inputStr.at(i))){
