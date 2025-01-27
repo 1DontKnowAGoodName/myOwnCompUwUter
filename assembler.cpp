@@ -16,6 +16,10 @@
 // inputStr -> binary string -> outpfile
 //   - so i can also manipulate it
 
+// to get to the top of the file again:
+// file.clear(); <- clear stop flags that tell program to stop looking
+// file.seekg(0, ios::beg); <- go to the byte that's zero away from the file beginning
+
 
 
 
@@ -49,6 +53,7 @@ int main(){
   }
 
   std::string inputStr;
+  std::string outputStr;
 
   const static std::unordered_map<std::string, std::string> inpToOutp{
         {"NOP", "00000"},
@@ -86,29 +91,31 @@ int main(){
   };
   std::string temp{};
 
-  while(std::getline(inpFile, inputStr)){
+  //check for .labels
+
+  //check for #define
+
+  while(getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
+    //translate var.mnemonic
 
-    //translate var.mnemonic           //TO-DO: throw error if this doesn't work throw error and close() and break;
-    if(inputStr.at(0) != '$' || inputStr.at(0) != '.'){
+    if(inputStr.at(0) != '#' || inputStr.at(0) != '.'){
       auto it = inpToOutp.find(inputStr.substr(0, 3));
       if(inputStr.substr(0, 3) == "NDY"){
         std::cout << "that is not a defined operation, killing execution." << '\n';
         return -1;
       }
-      outpFile << it->second  ;
+      outpFile << it->second << ' ';
       inputStr.erase(0, 3);
     }
-
-    //labels
+   
+    //labels  
     //immediates
-    while(inputStr.empty()){
-      std::cout << inputStr.length() << "loopdeloop\n";
 
+    while(!inputStr.empty()){
       switch(inputStr.at(0)){
       case 'r':
-        std::cout << "r lol\n";
         if(isdigit(inputStr.at(1)) && (inputStr.at(1) != 8 || inputStr.at(1) != 9)){
           outpFile << std::bitset<3>(inputStr.at(1)).to_string();
         }
@@ -119,28 +126,21 @@ int main(){
         inputStr.erase(0, 2);
         break;
       case 'i':
-        std::cout << "i lol\n";
-        inputStr.erase(0);
-        for (int i = 0; i < 3; ++i){
-          if(isdigit(inputStr.at(i))){
-            temp.push_back(inputStr.at(i));
-          }
-          else{
-            inputStr.erase(0, 3);
+        inputStr.erase(0, 1);
+        while(true && !inputStr.empty()){
+          if(!isdigit(inputStr.at(0))){
             break;
           }
+          temp.push_back(inputStr.at(0));
+          inputStr.erase(0, 1);
         }
-        std::bitset<8>(temp).to_string();
+        outpFile << std::bitset<8>(stoi(temp)).to_string();
         temp.clear();
-        break;
-      case '$':
         break;
       case '.':
         break;
       }
       outpFile << ' ';
-
-
     }
   }
   
