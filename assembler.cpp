@@ -8,20 +8,49 @@
 
 // TO DO:
 // labels, both on the same line or the line before
-
+//
 // define, own line  define [word] x
-
+//
 // I/O symbols compile to character code
-
+//
 // inputStr -> binary string -> outpfile
 //   - so i can also manipulate it
-
+//
 // to get to the top of the file again:
 // file.clear(); <- clear stop flags that tell program to stop looking
 // file.seekg(0, ios::beg); <- go to the byte that's zero away from the file beginning
 
+void dbg(){
+  static int i = 1;
+  std::cout << i << '\n';
+  ++i;
+  return;
+}
 
+std::pair<std::string, int> addDefines(std::string& inputStr){
+  std::string temp;
+  while(true){
+    if(isdigit(inputStr.at(0)))
+      break;
+    temp.push_back(inputStr.at(0));
+    inputStr.erase(0, 1);
+  }
+  std::pair<std::string, int> pair {temp, stoi(inputStr)};
+  return pair;
+}
+int retDefine(std::vector<std::pair<std::string, int>>& defines, std::string& str){
+  for(std::pair<std::string, int> pair : defines){
+    if(str.compare(pair.first) == 0){
+      return pair.second;
+    }
+  }
+  return -1;
+}
 
+void pairToString(std::pair<std::string, int>& pair){
+  std::cout << pair.first << " : " << pair.second << '\n';
+  return;
+}
 
 inline void deleteComments(std::string& inputStr){
   if(inputStr.find(';') != std::string::npos){
@@ -37,24 +66,20 @@ inline void deleteSpaces(std::string& inputStr){
 }
 
 int main(){
-  //open files & give it a funky name so im not suddenly editing system files
   std::ifstream inpFile{"C:\\Users\\aevdm\\Documents\\CPUproject\\assembler files\\asmCodeUwU.txt"};
   std::ofstream outpFile{"C:\\Users\\aevdm\\Documents\\CPUproject\\assembler files\\binAsmCodeUwU.txt"};
-
-  //check if input file can be opened
+  
   if(!inpFile.is_open()){
     std::cout << "was not able to open input file\n";
     return 1;
   }
-  //check if output can be opened
   if(!outpFile.is_open()){
     std::cout << "was not able to open output file\n";
     return 1;
   }
-
+  
   std::string inputStr;
-  std::string outputStr;
-
+  std::string temp;
   const static std::unordered_map<std::string, std::string> inpToOutp{
         {"NOP", "00000"},
         {"LDI", "00001"},
@@ -89,43 +114,51 @@ int main(){
         {"INC", "11110"},
         {"DEC", "11111"},
   };
-  std::string temp{};
-
-  //check for .labels
-
-  //check for #define
+  std::vector<std::pair<std::string, int>> defines;
 
   while(getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
-    //translate var.mnemonic
 
-    if(inputStr.at(0) != '#' || inputStr.at(0) != '.'){
+    if(inputStr.find("#define") != std::string::npos && inputStr.at(0) == '#'){
+      inputStr.erase(0, 7);
+      
+      defines.push_back(addDefines(inputStr));
+    }
+    //check for .labels
+  }
+
+  while(getline(inpFile, inputStr)){
+    deleteComments(inputStr);
+    deleteSpaces(inputStr);
+    
+    if(inputStr.at(0) == '#' || inputStr.at(0) == '.'){
+      inputStr.clear();
+    }
+    else{
       auto it = inpToOutp.find(inputStr.substr(0, 3));
       if(inputStr.substr(0, 3) == "NDY"){
         std::cout << "that is not a defined operation, killing execution." << '\n';
         return -1;
       }
       outpFile << it->second << ' ';
-      inputStr.erase(0, 3);
+      inputStr.erase(0, 3); 
     }
-   
-    //labels  
-    //immediates
+
+    //labels
 
     while(!inputStr.empty()){
+      //put this switch in a function, ret string, param:inputstr
       switch(inputStr.at(0)){
-      case 'r':
-        if(isdigit(inputStr.at(1)) && (inputStr.at(1) != 8 || inputStr.at(1) != 9)){
-          outpFile << std::bitset<3>(inputStr.at(1)).to_string();
-        }
-        else{
+        case 'r':
+        if(!isdigit(inputStr.at(1)) && !(inputStr.at(1) != 8 || inputStr.at(1) != 9)){
           std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
           return -1;
         }
+        outpFile << std::bitset<3>(inputStr.at(1)).to_string();
         inputStr.erase(0, 2);
-        break;
-      case 'i':
+      break;
+        case 'i':
         inputStr.erase(0, 1);
         while(true && !inputStr.empty()){
           if(!isdigit(inputStr.at(0))){
@@ -136,12 +169,13 @@ int main(){
         }
         outpFile << std::bitset<8>(stoi(temp)).to_string();
         temp.clear();
-        break;
-      case '.':
-        break;
+      break;
+        default:
+        std::cout << "not an accepted character right here. " << inpFile.tellg() << '\n';
+      break;
       }
-      outpFile << ' ';
     }
+    outpFile << '\n';
   }
   
   inpFile.close();

@@ -1,1 +1,1 @@
-NOP r1 i245;comment
+#define var 22
