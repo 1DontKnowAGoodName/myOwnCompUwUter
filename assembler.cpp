@@ -30,26 +30,33 @@ void dbg(){
 std::pair<std::string, int> addDefines(std::string& inputStr){
   std::string temp;
   while(true){
-    if(isdigit(inputStr.at(0)))
+    if(isdigit(inputStr.at(0))){
       break;
+    }
     temp.push_back(inputStr.at(0));
     inputStr.erase(0, 1);
   }
   std::pair<std::string, int> pair {temp, stoi(inputStr)};
   return pair;
 }
+
 int retDefine(std::vector<std::pair<std::string, int>>& defines, std::string& str){
   for(std::pair<std::string, int> pair : defines){
     if(str.compare(pair.first) == 0){
       return pair.second;
     }
   }
-  return -1;
+  return 0;
 }
 
-void pairToString(std::pair<std::string, int>& pair){
-  std::cout << pair.first << " : " << pair.second << '\n';
-  return;
+std::string isDef(std::string& str, std::vector<std::pair<std::string, int>>& defines){
+  for(std::pair<std::string, int> pair : defines){
+    if (pair.first.find(str) == 0){
+      return pair.first;
+    }
+  }
+  std::cout << "no defines found, program might crash\n";
+  return "-1";
 }
 
 inline void deleteComments(std::string& inputStr){
@@ -142,37 +149,39 @@ int main(){
         return -1;
       }
       outpFile << it->second << ' ';
-      inputStr.erase(0, 3); 
+      inputStr.erase(0, 3);
     }
 
     //labels
 
     while(!inputStr.empty()){
       //put this switch in a function, ret string, param:inputstr
-      switch(inputStr.at(0)){
-        case 'r':
-        if(!isdigit(inputStr.at(1)) && !(inputStr.at(1) != 8 || inputStr.at(1) != 9)){
-          std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
-          return -1;
-        }
-        outpFile << std::bitset<3>(inputStr.at(1)).to_string();
-        inputStr.erase(0, 2);
-      break;
-        case 'i':
-        inputStr.erase(0, 1);
-        while(true && !inputStr.empty()){
-          if(!isdigit(inputStr.at(0))){
-            break;
-          }
+
+      if(!inputStr.empty() && (inputStr.at(0))){  //stops if it's empty or not an immediate, 
+        while(isdigit(inputStr.at(0))){
           temp.push_back(inputStr.at(0));
           inputStr.erase(0, 1);
         }
         outpFile << std::bitset<8>(stoi(temp)).to_string();
         temp.clear();
-      break;
-        default:
-        std::cout << "not an accepted character right here. " << inpFile.tellg() << '\n';
-      break;
+      }
+
+      else if(inputStr.at(0) == 'r'){
+        if(!isdigit(inputStr.at(1)) && !(inputStr.at(1) == 8 || inputStr.at(1) == 9)){
+          std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
+          return -1;
+        }
+        outpFile << std::bitset<3>(inputStr.at(1)).to_string();
+        inputStr.erase(0, 2);
+      }
+      
+      else if(inputStr.at(0) == '.'){
+        std::cout << "label\n";
+      }
+      
+      else if(!isDef(inputStr, defines).compare("-1")){
+        outpFile << std::bitset<8>(stoi(isDef(inputStr, defines))).to_string();
+        inputStr.erase(isDef(inputStr, defines).length());
       }
     }
     outpFile << '\n';
