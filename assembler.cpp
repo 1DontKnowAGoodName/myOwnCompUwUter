@@ -20,14 +20,14 @@
 // file.clear(); <- clear stop flags that tell program to stop looking
 // file.seekg(0, ios::beg); <- go to the byte that's zero away from the file beginning
 
-void dbg(){
+void dbg(){ //for debugging
   static int i = 1;
   std::cout << i << '\n';
   ++i;
   return;
 }
 
-std::pair<std::string, int> addDefines(std::string& inputStr){
+std::pair<std::string, int> pairDL(std::string& inputStr){ // returns a pair, label or define
   std::string temp;
   while(true){
     if(isdigit(inputStr.at(0))){
@@ -40,16 +40,15 @@ std::pair<std::string, int> addDefines(std::string& inputStr){
   return pair;
 }
 
-int retDefine(std::vector<std::pair<std::string, int>>& defines, std::string& str){
-  for(std::pair<std::string, int> pair : defines){
+int retDL(const std::vector<std::pair<std::string, int>>& vec, const std::string& str){ // returns value from label or define (str). 0 if nothing is found
+  for(std::pair<std::string, int> pair : vec){
     if(str.compare(pair.first) == 0){
       return pair.second;
     }
   }
   return 0;
 }
-
-std::string isDef(std::string& str, std::vector<std::pair<std::string, int>>& defines){
+std::string isDL(const std::vector<std::pair<std::string, int>>& defines, const std::string& str){ //returns value from a pair if said pair is in vector
   for(std::pair<std::string, int> pair : defines){
     if (pair.first.find(str) == 0){
       return pair.first;
@@ -87,6 +86,10 @@ int main(){
   
   std::string inputStr;
   std::string temp;
+  
+  std::vector<std::pair<std::string, int>> defines;
+  std::vector<std::pair<std::string, int>> labels;
+
   const static std::unordered_map<std::string, std::string> inpToOutp{
         {"NOP", "00000"},
         {"LDI", "00001"},
@@ -121,24 +124,23 @@ int main(){
         {"INC", "11110"},
         {"DEC", "11111"},
   };
-  std::vector<std::pair<std::string, int>> defines;
 
   while(getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
 
-    if(inputStr.find("#define") != std::string::npos && inputStr.at(0) == '#'){
+    if(inputStr.find("#define") == 0){
       inputStr.erase(0, 7);
-      
-      defines.push_back(addDefines(inputStr));
+      defines.push_back(pairDL(inputStr));
     }
     //check for .labels
   }
+  inpFile.clear();
+  inpFile.seekg(0, std::ios::beg);
 
   while(getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
-    
     if(inputStr.at(0) == '#' || inputStr.at(0) == '.'){
       inputStr.clear();
     }
@@ -151,13 +153,11 @@ int main(){
       outpFile << it->second << ' ';
       inputStr.erase(0, 3);
     }
+    
+    while(inputStr.length() != 0){
+      //put this shit in a function, ret string, param:inputstr // truueeee
 
-    //labels
-
-    while(!inputStr.empty()){
-      //put this switch in a function, ret string, param:inputstr
-
-      if(!inputStr.empty() && (inputStr.at(0))){  //stops if it's empty or not an immediate, 
+      if(!inputStr.empty() && isdigit(inputStr.at(0))){  //stops if it's empty or not an immediate, 
         while(isdigit(inputStr.at(0))){
           temp.push_back(inputStr.at(0));
           inputStr.erase(0, 1);
@@ -175,13 +175,11 @@ int main(){
         inputStr.erase(0, 2);
       }
       
-      else if(inputStr.at(0) == '.'){
-        std::cout << "label\n";
-      }
-      
-      else if(!isDef(inputStr, defines).compare("-1")){
-        outpFile << std::bitset<8>(stoi(isDef(inputStr, defines))).to_string();
-        inputStr.erase(isDef(inputStr, defines).length());
+      else if(inputStr.at(0) == '.'){}
+
+      else if(isDL(defines, inputStr) != "-1"){
+        outpFile << std::bitset<8>(retDL(defines, isDL(defines, inputStr))).to_string();
+        inputStr.erase(0, isDL(defines, inputStr).length());
       }
     }
     outpFile << '\n';
