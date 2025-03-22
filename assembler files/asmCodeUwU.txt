@@ -1,2 +1,6 @@
 #define var 22
+#define var2 64
 NOP var
+NOP
+NOP var2
+NOP

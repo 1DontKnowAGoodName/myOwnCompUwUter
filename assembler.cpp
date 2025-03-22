@@ -9,9 +9,7 @@
 // TO DO:
 // labels, both on the same line or the line before
 //
-// define, own line  define [word] x
-//
-// I/O symbols compile to character code
+// debug defines, you can't have multiple yet
 //
 // inputStr -> binary string -> outpfile
 //   - so i can also manipulate it
@@ -29,26 +27,25 @@ void dbg(){ //for debugging
 
 std::pair<std::string, int> pairDL(std::string& inputStr){ // returns a pair, label or define
   std::string temp;
-  while(true){
-    if(isdigit(inputStr.at(0))){
-      break;
-    }
+  while(!isdigit(inputStr.at(0))){   
     temp.push_back(inputStr.at(0));
     inputStr.erase(0, 1);
   }
+
   std::pair<std::string, int> pair {temp, stoi(inputStr)};
   return pair;
 }
 
 int retDL(const std::vector<std::pair<std::string, int>>& vec, const std::string& str){ // returns value from label or define (str). 0 if nothing is found
-  for(std::pair<std::string, int> pair : vec){
-    if(str.compare(pair.first) == 0){
-      return pair.second;
+  for(int i = 0; i < vec.size(); ++i ){
+    if(str == vec.at(i).first){
+      return vec.at(i).second;
     }
   }
   return 0;
 }
-std::string isDL(const std::vector<std::pair<std::string, int>>& defines, const std::string& str){ //returns value from a pair if said pair is in vector
+
+std::string isDL(const std::vector<std::pair<std::string, int>>& defines, const std::string str){ //returns value from a pair if said pair is in vector
   for(std::pair<std::string, int> pair : defines){
     if (pair.first.find(str) == 0){
       return pair.first;
@@ -56,6 +53,36 @@ std::string isDL(const std::vector<std::pair<std::string, int>>& defines, const 
   }
   std::cout << "no defines found, program might crash\n";
   return "-1";
+}
+
+inline std::string decodeParam(std::string& inputStr, const std::vector<std::pair<std::string, int>>& defines, const std::vector<std::pair<std::string, int>>& labels){
+  std::string outpFile;
+  std::string temp;
+
+  if(!inputStr.empty() && isdigit(inputStr.at(0))){  //immediate
+    while(!inputStr.empty() && isdigit(inputStr.at(0))){
+      temp.push_back(inputStr.at(0));
+      inputStr.erase(0, 1);
+    }
+    outpFile += std::bitset<8>(stoi(temp)).to_string();
+  }
+
+  else if(inputStr.at(0) == 'r'){ //registers
+    if(!isdigit(inputStr.at(1)) && !(inputStr.at(1) == 8 || inputStr.at(1) == 9)){
+      std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
+      std::exit(0);
+    }
+    outpFile += std::bitset<3>(inputStr.at(1)).to_string();
+    inputStr.erase(0, 2);
+  }
+  
+  else if(inputStr.at(0) == '.'){} //labels
+
+  else if(isDL(defines, inputStr) != "-1"){ //defines
+    outpFile += std::bitset<8>(retDL(defines, isDL(defines, inputStr))).to_string();
+    inputStr.erase(0, isDL(defines, inputStr).length());
+  }
+  return outpFile;
 }
 
 inline void deleteComments(std::string& inputStr){
@@ -147,46 +174,24 @@ int main(){
     else{
       auto it = inpToOutp.find(inputStr.substr(0, 3));
       if(inputStr.substr(0, 3) == "NDY"){
-        std::cout << "that is not a defined operation, killing execution." << '\n';
         return -1;
       }
+
       outpFile << it->second << ' ';
       inputStr.erase(0, 3);
+
+      std::string line; 
+
+      while(!inputStr.empty()){
+        line = decodeParam(inputStr, defines, labels);
+      }
+      outpFile << line;
+      outpFile << '\n';
     }
-    
-    while(inputStr.length() != 0){
-      //put this shit in a function, ret string, param:inputstr // truueeee
-
-      if(!inputStr.empty() && isdigit(inputStr.at(0))){  //stops if it's empty or not an immediate, 
-        while(isdigit(inputStr.at(0))){
-          temp.push_back(inputStr.at(0));
-          inputStr.erase(0, 1);
-        }
-        outpFile << std::bitset<8>(stoi(temp)).to_string();
-        temp.clear();
-      }
-
-      else if(inputStr.at(0) == 'r'){
-        if(!isdigit(inputStr.at(1)) && !(inputStr.at(1) == 8 || inputStr.at(1) == 9)){
-          std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
-          return -1;
-        }
-        outpFile << std::bitset<3>(inputStr.at(1)).to_string();
-        inputStr.erase(0, 2);
-      }
-      
-      else if(inputStr.at(0) == '.'){}
-
-      else if(isDL(defines, inputStr) != "-1"){
-        outpFile << std::bitset<8>(retDL(defines, isDL(defines, inputStr))).to_string();
-        inputStr.erase(0, isDL(defines, inputStr).length());
-      }
-    }
-    outpFile << '\n';
+    dbg();
   }
   
   inpFile.close();
   outpFile.close();
-  
   return 0;
 }
