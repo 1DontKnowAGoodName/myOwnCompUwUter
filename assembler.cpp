@@ -152,7 +152,7 @@ int main(){
         {"DEC", "11111"},
   };
 
-  while(getline(inpFile, inputStr)){
+  while(getline(inpFile, inputStr)){ // find labels and defines
     deleteComments(inputStr);
     deleteSpaces(inputStr);
 
@@ -160,7 +160,6 @@ int main(){
       inputStr.erase(0, 7);
       defines.push_back(pairDL(inputStr));
     }
-    //check for .labels
   }
   inpFile.clear();
   inpFile.seekg(0, std::ios::beg);
@@ -168,6 +167,7 @@ int main(){
   while(getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
+
     if(inputStr.at(0) == '#' || inputStr.at(0) == '.'){
       inputStr.clear();
     }
@@ -189,6 +189,7 @@ int main(){
       outpFile << '\n';
     }
     dbg();
+    system("pause");
   }
   
   inpFile.close();
