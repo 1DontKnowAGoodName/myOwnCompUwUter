@@ -1,5 +1,6 @@
 #include <unordered_map>
 #include <algorithm>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <locale>
@@ -21,11 +22,21 @@
 void dbg(){ //for debugging
   static int i = 1;
   std::cout << i << '\n';
-  ++i;
+  i++;
   return;
 }
 
-std::pair<std::string, int> pairDL(std::string& inputStr){ // returns a pair, label or define
+std::string BINtoHEX (std::string & in, int size = 4){
+  std::stringstream out; std::string x, y;
+  while (in.size() < size) {in.push_back('0');}
+  for (int i = 0; i < 4; i++){
+    out << std::hex << stoi(in.substr(i * 4, 4), nullptr, 2) << std::dec << '\n';
+    out >> x; y += x;
+  }
+  return y;
+}
+
+std::pair<std::string, int> pairDefineLabel(std::string& inputStr){ // returns a pair, label or define
   std::string temp;
   while(!isdigit(inputStr.at(0))){   
     temp.push_back(inputStr.at(0));
@@ -37,9 +48,9 @@ std::pair<std::string, int> pairDL(std::string& inputStr){ // returns a pair, la
 }
 
 int retDL(const std::vector<std::pair<std::string, int>>& vec, const std::string& str){ // returns value from label or define (str). 0 if nothing is found
-  for(int i = 0; i < vec.size(); ++i ){
-    if(str == vec.at(i).first){
-      return vec.at(i).second;
+  for(std::pair<std::string, int> pair : vec){
+    if(str == pair.first){
+      return pair.second;
     }
   }
   return 0;
@@ -112,7 +123,8 @@ int main(){
   }
   
   std::string inputStr;
-  std::string temp;
+  std::string outputStr;
+  bool hex = false;
   
   std::vector<std::pair<std::string, int>> defines;
   std::vector<std::pair<std::string, int>> labels;
@@ -158,7 +170,7 @@ int main(){
 
     if(inputStr.find("#define") == 0){
       inputStr.erase(0, 7);
-      defines.push_back(pairDL(inputStr));
+      defines.push_back(pairDefineLabel(inputStr)); 
     }
   }
   inpFile.clear();
@@ -171,25 +183,28 @@ int main(){
     if(inputStr.at(0) == '#' || inputStr.at(0) == '.'){
       inputStr.clear();
     }
+    
     else{
       auto it = inpToOutp.find(inputStr.substr(0, 3));
       if(inputStr.substr(0, 3) == "NDY"){
         return -1;
       }
 
-      outpFile << it->second << ' ';
+      outputStr += it->second /*+ ' '*/ ;
       inputStr.erase(0, 3);
 
-      std::string line; 
-
       while(!inputStr.empty()){
-        line = decodeParam(inputStr, defines, labels);
+        outputStr += decodeParam(inputStr, defines, labels);
       }
-      outpFile << line;
-      outpFile << '\n';
+      
+      if(hex){
+        outpFile << BINtoHEX(outputStr) << '\n';
+      }
+      else{
+        outpFile << outputStr << '\n';
+      }
     }
-    dbg();
-    system("pause");
+    outputStr.clear();
   }
   
   inpFile.close();
