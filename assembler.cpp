@@ -1,7 +1,7 @@
 #include <unordered_map>
 #include <algorithm>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <locale>
 #include <vector>
@@ -10,14 +10,6 @@
 // TO DO:
 // labels, both on the same line or the line before
 //
-// debug defines, you can't have multiple yet
-//
-// inputStr -> binary string -> outpfile
-//   - so i can also manipulate it
-//
-// to get to the top of the file again:
-// file.clear(); <- clear stop flags that tell program to stop looking
-// file.seekg(0, ios::beg); <- go to the byte that's zero away from the file beginning
 
 void dbg(){ //for debugging
   static int i = 1;
@@ -26,17 +18,31 @@ void dbg(){ //for debugging
   return;
 }
 
-std::string BINtoHEX (std::string & in, int size = 4){
+template <typename T> std::string translateMnemonic(T it, std::string& inputStr){
+  std::string outputStr;
+  if(inputStr.substr(0, 3) == "NDY"){
+    std::cout << "YEAH BRO YOU DUN FUCKED UP FR FR";
+    std::exit(-1);
+  }
+  inputStr.erase(0, 3);
+  return it->second + ' ';
+}
+
+std::string BINtoHEX (std::string & in, bool doThis, int size = 4){
+  if (!doThis){
+    return "";
+  }
   std::stringstream out; std::string x, y;
+  
   while (in.size() < size) {in.push_back('0');}
   for (int i = 0; i < 4; i++){
-    out << std::hex << stoi(in.substr(i * 4, 4), nullptr, 2) << std::dec << '\n';
+    out << std::hex << stoi(in.substr(i * 4, 4), nullptr, 2) << std::dec << '\n'; //hack
     out >> x; y += x;
   }
   return y;
 }
 
-std::pair<std::string, int> pairDefineLabel(std::string& inputStr){ // returns a pair, label or define
+std::pair<std::string, int> pairDefine(std::string& inputStr){ // returns a pair, label or define
   std::string temp;
   while(!isdigit(inputStr.at(0))){   
     temp.push_back(inputStr.at(0));
@@ -62,37 +68,44 @@ std::string isDL(const std::vector<std::pair<std::string, int>>& defines, const 
       return pair.first;
     }
   }
-  std::cout << "no defines found, program might crash\n";
   return "-1";
 }
 
 inline std::string decodeParam(std::string& inputStr, const std::vector<std::pair<std::string, int>>& defines, const std::vector<std::pair<std::string, int>>& labels){
   std::string outpFile;
   std::string temp;
-
-  if(!inputStr.empty() && isdigit(inputStr.at(0))){  //immediate
-    while(!inputStr.empty() && isdigit(inputStr.at(0))){
-      temp.push_back(inputStr.at(0));
-      inputStr.erase(0, 1);
-    }
-    outpFile += std::bitset<8>(stoi(temp)).to_string();
-  }
-
-  else if(inputStr.at(0) == 'r'){ //registers
-    if(!isdigit(inputStr.at(1)) && !(inputStr.at(1) == 8 || inputStr.at(1) == 9)){
-      std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
-      std::exit(0);
-    }
-    outpFile += std::bitset<3>(inputStr.at(1)).to_string();
-    inputStr.erase(0, 2);
-  }
   
-  else if(inputStr.at(0) == '.'){} //labels
+  while(!inputStr.empty()){
+		if(!inputStr.empty() && isdigit(inputStr.at(0))){  //immediate
+			while(!inputStr.empty() && isdigit(inputStr.at(0))){
+				temp.push_back(inputStr.at(0));
+				inputStr.erase(0, 1);
+			}
+			outpFile += std::bitset<8>(stoi(temp)).to_string();
+		}
 
-  else if(isDL(defines, inputStr) != "-1"){ //defines
-    outpFile += std::bitset<8>(retDL(defines, isDL(defines, inputStr))).to_string();
-    inputStr.erase(0, isDL(defines, inputStr).length());
-  }
+		else if(inputStr.at(0) == 'r'){ //registers
+			if(!isdigit(inputStr.at(1)) && !(inputStr.at(1) == 8 || inputStr.at(1) == 9)){
+				std::cout << "not an allowed input! '" << inputStr.at(1) << "' terminating process.";
+				std::exit(0);
+			}
+			outpFile += std::bitset<3>(inputStr.at(1)).to_string();
+			inputStr.erase(0, 2);
+		}
+		
+		else if(inputStr.at(0) == '.'){
+      if(isDL(labels, inputStr.substr(0)) == "-1"){
+        return "a problem";
+      }
+
+      outpFile += std::bitset<8>(retDL(labels, isDL(labels, inputStr.substr(0, 7)))).to_string();
+		} //labels
+
+		else if(isDL(defines, inputStr) != "-1"){ //defines
+			outpFile += std::bitset<8>(retDL(defines, isDL(defines, inputStr))).to_string();
+			inputStr.erase(0, isDL(defines, inputStr).length());
+		}
+	}
   return outpFile;
 }
 
@@ -125,9 +138,10 @@ int main(){
   std::string inputStr;
   std::string outputStr;
   bool hex = false;
+	unsigned short int lines = 0;
   
   std::vector<std::pair<std::string, int>> defines;
-  std::vector<std::pair<std::string, int>> labels;
+  std::vector<std::pair<std::string, int>> labels; //has to be prefaced with a '.' and can only contain 6 characters, including a ':', which isn't mandatory
 
   const static std::unordered_map<std::string, std::string> inpToOutp{
         {"NOP", "00000"},
@@ -170,9 +184,15 @@ int main(){
 
     if(inputStr.find("#define") == 0){
       inputStr.erase(0, 7);
-      defines.push_back(pairDefineLabel(inputStr)); 
+      defines.push_back(pairDefine(inputStr)); 
     }
+
+		else if(inputStr.at(0) == '.' && isDL(labels, inputStr.substr(0, 7)) == "-1"){
+			std::pair<std::string, int> tempLabel{inputStr.substr(0, 7), lines};
+      labels.push_back(tempLabel);
+		}
   }
+
   inpFile.clear();
   inpFile.seekg(0, std::ios::beg);
 
@@ -180,29 +200,32 @@ int main(){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
 
+		if(inputStr.at(0) == '.' && isDL(labels, inputStr.substr(1, 6)) != "-1"){
+      inputStr.erase(0, 7);
+		}
+		else{
+      if(inputStr.at(0) == '0'){
+        std::cout << "undefined label at line " << lines << '\n';
+      }
+		}
+
     if(inputStr.at(0) == '#' || inputStr.at(0) == '.'){
       inputStr.clear();
     }
-    
+
     else{
-      auto it = inpToOutp.find(inputStr.substr(0, 3));
-      if(inputStr.substr(0, 3) == "NDY"){
-        return -1;
+      outputStr += translateMnemonic(inpToOutp.find(inputStr.substr(0, 3)), inputStr);
+      outputStr += decodeParam(inputStr, defines, labels);
+      outputStr += BINtoHEX(outputStr, hex);
+
+      while(outputStr.length() <= 16){
+        outputStr.push_back('0');
       }
 
-      outputStr += it->second /*+ ' '*/ ;
-      inputStr.erase(0, 3);
-
-      while(!inputStr.empty()){
-        outputStr += decodeParam(inputStr, defines, labels);
-      }
-      
-      if(hex){
-        outpFile << BINtoHEX(outputStr) << '\n';
-      }
-      else{
-        outpFile << outputStr << '\n';
-      }
+			if(!outputStr.empty()){
+				outpFile << outputStr << '\n';
+			}
+			lines++;
     }
     outputStr.clear();
   }
