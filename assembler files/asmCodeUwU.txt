@@ -1,6 +1,8 @@
 #define var 22
 #define varr 64
 NOP var
-NOP
+.label:
+NOP .label:
+.loop_:
 NOP varr
-NOP
+NOP .loop_:

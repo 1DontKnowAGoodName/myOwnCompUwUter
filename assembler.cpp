@@ -1,15 +1,9 @@
 #include <unordered_map>
-#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <locale>
 #include <vector>
 #include <bitset>
-
-// TO DO:
-// labels, both on the same line or the line before
-//
 
 void dbg(){ //for debugging
   static int i = 1;
@@ -25,7 +19,7 @@ template <typename T> std::string translateMnemonic(T it, std::string& inputStr)
     std::exit(-1);
   }
   inputStr.erase(0, 3);
-  return it->second + ' ';
+  return it->second;
 }
 
 std::string BINtoHEX (std::string & in, bool doThis, int size = 4){
@@ -93,13 +87,13 @@ inline std::string decodeParam(std::string& inputStr, const std::vector<std::pai
 			inputStr.erase(0, 2);
 		}
 		
-		else if(inputStr.at(0) == '.'){
+		else if(inputStr.at(0) == '.'){//labels
       if(isDL(labels, inputStr.substr(0)) == "-1"){
         return "a problem";
       }
-
       outpFile += std::bitset<8>(retDL(labels, isDL(labels, inputStr.substr(0, 7)))).to_string();
-		} //labels
+      inputStr.erase(0, 7);
+		} 
 
 		else if(isDL(defines, inputStr) != "-1"){ //defines
 			outpFile += std::bitset<8>(retDL(defines, isDL(defines, inputStr))).to_string();
@@ -181,55 +175,54 @@ int main(){
   while(getline(inpFile, inputStr)){ // find labels and defines
     deleteComments(inputStr);
     deleteSpaces(inputStr);
-
+    
     if(inputStr.find("#define") == 0){
       inputStr.erase(0, 7);
-      defines.push_back(pairDefine(inputStr)); 
+      defines.push_back(pairDefine(inputStr));
     }
-
+    
 		else if(inputStr.at(0) == '.' && isDL(labels, inputStr.substr(0, 7)) == "-1"){
 			std::pair<std::string, int> tempLabel{inputStr.substr(0, 7), lines};
       labels.push_back(tempLabel);
 		}
+    else if(!inputStr.empty()){
+      lines++;
+    }
   }
 
   inpFile.clear();
   inpFile.seekg(0, std::ios::beg);
 
+  lines = 0;
   while(getline(inpFile, inputStr)){
     deleteComments(inputStr);
     deleteSpaces(inputStr);
 
-		if(inputStr.at(0) == '.' && isDL(labels, inputStr.substr(1, 6)) != "-1"){
+		if(inputStr.at(0) == '.' && isDL(labels, inputStr.substr(0, 7)) != "-1"){
       inputStr.erase(0, 7);
 		}
-		else{
-      if(inputStr.at(0) == '0'){
-        std::cout << "undefined label at line " << lines << '\n';
-      }
+		else if(inputStr.at(0) == '.'){
+      std::cout << "undefined label at line " << lines << '\n';
 		}
-
-    if(inputStr.at(0) == '#' || inputStr.at(0) == '.'){
+    else if(inputStr.at(0) == '#'){
       inputStr.clear();
     }
-
+    
     else{
       outputStr += translateMnemonic(inpToOutp.find(inputStr.substr(0, 3)), inputStr);
       outputStr += decodeParam(inputStr, defines, labels);
       outputStr += BINtoHEX(outputStr, hex);
-
       while(outputStr.length() <= 16){
         outputStr.push_back('0');
       }
-
-			if(!outputStr.empty()){
+      if(!outputStr.empty()){
 				outpFile << outputStr << '\n';
 			}
 			lines++;
     }
     outputStr.clear();
   }
-  
+
   inpFile.close();
   outpFile.close();
   return 0;
