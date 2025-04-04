@@ -1,6 +1,7 @@
 PLEASE, it would be nice if you read this first.
 
 IT WOULD BE REALLY COOL OF YOU TO NOT LOOK AT THE OLDER COMMITS, i never planned on sharing it so there are some cusswords in it,
+https://programmerhumor.io/linux-memes/c-code-has-higher-code-quality-when-it-contains-swear-words/
 in addition, this is my first time actually using git, so it's not like i was using it well, which means that i did some stupid or silly things, and i don't feel like getting roasted for these things.
 
 this is my first time making anything for a CPU, so it's not good.
