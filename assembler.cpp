@@ -15,7 +15,6 @@ void dbg(){ //for debugging
 template <typename T> std::string translateMnemonic(T it, std::string& inputStr){
   std::string outputStr;
   if(inputStr.substr(0, 3) == "NDY"){
-    std::cout << "YEAH BRO YOU DUN FUCKED UP FR FR";
     std::exit(-1);
   }
   inputStr.erase(0, 3);
@@ -135,7 +134,7 @@ int main(){
 	unsigned short int lines = 0;
   
   std::vector<std::pair<std::string, int>> defines;
-  std::vector<std::pair<std::string, int>> labels; //has to be prefaced with a '.' and can only contain 6 characters, including a ':', which isn't mandatory
+  std::vector<std::pair<std::string, int>> labels; //has to be prefaced with a '.' and can only contain 6 characters, including a ':', which isn't mandatory, because i'm lazy and almost done
 
   const static std::unordered_map<std::string, std::string> inpToOutp{
         {"NOP", "00000"},
